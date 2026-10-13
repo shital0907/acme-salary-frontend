@@ -1,0 +1,149 @@
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" href="#" aria-label="ACME home">
+      <span class="brand-mark">a.</span>
+      <span>acme<span class="brand-muted">people</span></span>
+    </a>
+    <div class="workspace-label">WORKSPACE</div>
+    <nav aria-label="Main navigation">
+      <a class="nav-item active" href="#overview"><span class="nav-icon">▦</span> Overview</a>
+      <a class="nav-item" href="#employees"><span class="nav-icon">♙</span> Employees</a>
+      <a class="nav-item" href="#compensation"><span class="nav-icon">↗</span> Compensation</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="avatar">HR</div>
+      <div><strong>HR Manager</strong><small>People team</small></div>
+      <span class="more">···</span>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="breadcrumb">Workspace <span>/</span> <strong>Overview</strong></div>
+      <div class="topbar-right"><span class="live-dot"></span> All changes saved <span class="topbar-divider"></span><span class="top-avatar">HR</span></div>
+    </header>
+
+    <div class="page">
+      <section class="welcome" id="overview">
+        <div>
+          <div class="eyebrow">PEOPLE OPERATIONS <span>·</span> ACME INC.</div>
+          <h1>Good morning, HR team <span class="wave">✳</span></h1>
+          <p class="page-subtitle">A clear view of your people and how you compensate them.</p>
+        </div>
+        <button class="primary-button" (click)="openCreate()"> <span>＋</span> Add employee</button>
+      </section>
+
+      @if (errorMessage) {
+        <div class="alert" role="alert"><span>!</span> {{ errorMessage }} <button (click)="errorMessage = ''" aria-label="Dismiss">×</button></div>
+      }
+
+      <section class="stats-grid" aria-label="Employee overview">
+        <article class="stat-card">
+          <div class="stat-heading">Total employees <span class="stat-icon purple">♙</span></div>
+          <div class="stat-value">{{ workforceTotal | number }}</div>
+          <div class="stat-note"><span class="note-dot"></span> Across {{ summaries.length }} countries</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-heading">Countries <span class="stat-icon blue">◎</span></div>
+          <div class="stat-value">{{ summaries.length | number:'2.0' }}</div>
+          <div class="stat-note">Global workforce footprint</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-heading">Departments <span class="stat-icon orange">▤</span></div>
+          <div class="stat-value">{{ departments.length | number:'2.0' }}</div>
+          <div class="stat-note">Teams across the organization</div>
+        </article>
+        <article class="stat-card insight-card">
+          <div class="stat-heading">Compensation snapshot <span class="stat-icon green">↗</span></div>
+          <div class="stat-value insight-value">By local currency</div>
+          <div class="stat-note">Compare pay fairly, country by country</div>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="panel directory-panel" id="employees">
+          <div class="panel-heading">
+            <div><div class="section-kicker">YOUR WORKFORCE</div><h2>Employee directory</h2><p class="panel-subtitle">Search and manage employee compensation details.</p></div>
+            <span class="count-pill">{{ totalEmployees | number }} people</span>
+          </div>
+          <div class="toolbar">
+            <label class="search-box"><span>⌕</span><input aria-label="Search employees" placeholder="Search name, role or email..." [value]="search" (input)="onSearch($event)"><kbd>⌘ K</kbd></label>
+            <select aria-label="Filter by country" [value]="countryFilter" (change)="onCountryChange($event)">
+              <option value="">All countries</option>
+              @for (item of summaries; track item.country) { <option [value]="item.country">{{ item.country }}</option> }
+            </select>
+            <select aria-label="Filter by department" [value]="departmentFilter" (change)="onDepartmentChange($event)">
+              <option value="">All departments</option>
+              @for (item of departments; track item) { <option [value]="item">{{ item }}</option> }
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>EMPLOYEE</th><th>DEPARTMENT</th><th>COUNTRY</th><th>ANNUAL SALARY</th><th>START DATE</th><th><span class="sr-only">Actions</span></th></tr></thead>
+              <tbody>
+                @for (employee of employees; track employee.id) {
+                  <tr>
+                    <td><div class="person-cell"><span class="person-avatar" [class]="'person-avatar avatar-' + (employee.id % 5)">{{ initials(employee.name) }}</span><span><strong>{{ employee.name }}</strong><small>{{ employee.title }} · {{ employee.email }}</small></span></div></td>
+                    <td><span class="department-pill">{{ employee.department }}</span></td>
+                    <td><span class="country-cell"><span class="country-dot"></span>{{ employee.country }}</span></td>
+                    <td><strong class="salary">{{ employee.annualSalary | number:'1.0-0' }} <span>{{ employee.currency }}</span></strong></td>
+                    <td class="date-cell">{{ employee.startDate | date:'MMM d, y' }}</td>
+                    <td><div class="row-actions"><button (click)="openEdit(employee)" [attr.aria-label]="'Edit ' + employee.name">Edit</button><button (click)="remove(employee)" [attr.aria-label]="'Delete ' + employee.name">×</button></div></td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="6" class="empty-state">{{ loading ? 'Loading employees…' : 'No employees match these filters.' }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <span>Showing <strong>{{ totalEmployees === 0 ? 0 : page * pageSize + 1 }}–{{ Math.min((page + 1) * pageSize, totalEmployees) }}</strong> of <strong>{{ totalEmployees | number }}</strong> employees</span>
+            <div class="page-actions"><button (click)="changePage(-1)" [disabled]="page === 0" aria-label="Previous page">←</button><span>Page {{ page + 1 }} of {{ totalPages || 1 }}</span><button (click)="changePage(1)" [disabled]="page + 1 >= totalPages" aria-label="Next page">→</button></div>
+          </div>
+        </article>
+
+        <aside class="panel compensation-panel" id="compensation">
+          <div class="section-kicker">PAY EQUITY, AT A GLANCE</div>
+          <h2>Compensation by country</h2>
+          <p class="panel-subtitle">Annual base salary · local currency</p>
+          <div class="country-list">
+            @for (item of topSummaries; track item.country) {
+              <article class="country-summary">
+                <div class="country-summary-top"><div><strong>{{ item.country }}</strong><small>{{ item.employeeCount | number }} employees <span>·</span> {{ item.currency }}</small></div><span class="country-code">{{ item.currency }}</span></div>
+                <div class="salary-range"><span>Avg. <strong>{{ item.averageSalary | number:'1.0-0' }}</strong></span><span>Range {{ item.minimumSalary | number:'1.0-0' }}–{{ item.maximumSalary | number:'1.0-0' }}</span></div>
+                <div class="salary-range workforce-share"><span>Workforce share</span><span>{{ workforceShare(item.employeeCount) }}%</span></div>
+                <div class="bar-track"><div class="bar-fill" [style.width.%]="barWidth(item.employeeCount)"></div></div>
+              </article>
+            } @empty {
+              <div class="empty-summary">{{ loading ? 'Loading compensation data…' : 'No compensation data yet.' }}</div>
+            }
+          </div>
+          <div class="currency-note"><span>i</span><p>Salary comparisons use each country's local currency. Amounts are not converted or combined across currencies.</p></div>
+        </aside>
+      </section>
+      <footer>ACME PEOPLE <span>·</span> INTERNAL HR TOOL <span class="footer-right">Synthetic demo data · Not for payroll processing</span></footer>
+    </div>
+  </main>
+</div>
+
+@if (dialogOpen) {
+  <div class="modal-backdrop" (click)="closeDialog()" (keydown.escape)="closeDialog()">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="dialog-title" (click)="$event.stopPropagation()">
+      <div class="modal-heading"><div><div class="section-kicker">EMPLOYEE DETAILS</div><h2 id="dialog-title">{{ editing ? 'Edit employee' : 'Add employee' }}</h2></div><button class="close-button" (click)="closeDialog()" aria-label="Close">×</button></div>
+      <form (ngSubmit)="saveEmployee()">
+        <div class="form-grid">
+          <label class="form-field full-width">Full name<input name="name" [(ngModel)]="draft.name" required maxlength="120" autocomplete="name"></label>
+          <label class="form-field full-width">Work email<input name="email" [(ngModel)]="draft.email" required type="email" maxlength="160" autocomplete="email"></label>
+          <label class="form-field">Job title<input name="title" [(ngModel)]="draft.title" required maxlength="120"></label>
+          <label class="form-field">Department<select name="department" [(ngModel)]="draft.department" required>@for (item of departments; track item) { <option [value]="item">{{ item }}</option> }</select></label>
+          <label class="form-field">Country<select name="country" [(ngModel)]="draft.country" (ngModelChange)="updateCurrency()" required>@for (item of countryCurrencies; track item.country) { <option [value]="item.country">{{ item.country }}</option> }</select></label>
+          <label class="form-field">Currency<select name="currency" [(ngModel)]="draft.currency" required>@for (item of countryCurrencies; track item.country) { <option [value]="item.currency">{{ item.currency }}</option> }</select></label>
+          <label class="form-field">Annual base salary<input name="annualSalary" [(ngModel)]="draft.annualSalary" required type="number" min="0.01" step="0.01"></label>
+          <label class="form-field">Start date<input name="startDate" [(ngModel)]="draft.startDate" required type="date" [max]="today"></label>
+        </div>
+        @if (formError) { <div class="form-error" role="alert">{{ formError }}</div> }
+        <div class="modal-actions"><button class="secondary-button" type="button" (click)="closeDialog()">Cancel</button><button class="primary-button" type="submit" [disabled]="saving">{{ saving ? 'Saving…' : (editing ? 'Save changes' : 'Add employee') }}</button></div>
+      </form>
+    </section>
+  </div>
+}
