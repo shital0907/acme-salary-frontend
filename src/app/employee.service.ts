@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../environments/environment';
 
 export interface Employee {
   id: number;
@@ -36,7 +37,7 @@ export interface CountrySummary {
 @Injectable({ providedIn: 'root' })
 export class EmployeeService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = '/api';
+  private readonly baseUrl = environment.apiUrl;
 
   getEmployees(page: number, size: number, search: string, country: string, department: string): Observable<EmployeePage> {
     let params = new HttpParams().set('page', page).set('size', size);

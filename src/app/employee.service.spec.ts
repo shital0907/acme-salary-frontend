@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { EmployeeService } from './employee.service';
+import { environment } from '../environments/environment';
 
 describe('EmployeeService', () => {
   let service: EmployeeService;
@@ -21,7 +22,7 @@ describe('EmployeeService', () => {
   it('requests a server-side employee page with active filters', () => {
     service.getEmployees(2, 12, '  Alex ', 'Canada', 'Engineering').subscribe();
 
-    const request = http.expectOne(req => req.url === '/api/employees');
+    const request = http.expectOne(req => req.url === `${environment.apiUrl}/employees`);
     expect(request.request.method).toBe('GET');
     expect(request.request.params.get('page')).toBe('2');
     expect(request.request.params.get('size')).toBe('12');
@@ -39,17 +40,17 @@ describe('EmployeeService', () => {
     };
 
     service.create(employee).subscribe();
-    const createRequest = http.expectOne('/api/employees');
+    const createRequest = http.expectOne(`${environment.apiUrl}/employees`);
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush({ id: 7, ...employee });
 
     service.update(7, employee).subscribe();
-    const updateRequest = http.expectOne('/api/employees/7');
+    const updateRequest = http.expectOne(`${environment.apiUrl}/employees/7`);
     expect(updateRequest.request.method).toBe('PUT');
     updateRequest.flush({ id: 7, ...employee });
 
     service.delete(7).subscribe();
-    const deleteRequest = http.expectOne('/api/employees/7');
+    const deleteRequest = http.expectOne(`${environment.apiUrl}/employees/7`);
     expect(deleteRequest.request.method).toBe('DELETE');
     deleteRequest.flush(null);
   });

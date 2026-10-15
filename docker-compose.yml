@@ -1,0 +1,29 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: jdbc:h2:file:/data/acme-salaries;DB_CLOSE_ON_EXIT=FALSE
+      SEED_ENABLED: "true"
+    volumes:
+      - salary-data:/data
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:8080/api/analytics/countries >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+
+  frontend:
+    build:
+      context: .
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "4200:80"
+
+volumes:
+  salary-data:
